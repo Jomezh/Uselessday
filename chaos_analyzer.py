@@ -1,5 +1,5 @@
 """
-Chaos Analyzer — Simple and reliable camera + analyze approach
+Chaos Analyzer Pro — Camera input that resets after analysis
 Dependencies:
   pip install streamlit ultralytics opencv-python scikit-image numpy pillow
 Run:
@@ -14,11 +14,19 @@ from PIL import Image
 from skimage.measure import shannon_entropy
 from ultralytics import YOLO
 
-st.set_page_config(page_title="Chaos Analyzer (Fixed)", page_icon="🌪️", layout="wide")
+st.set_page_config(page_title="Chaos Analyzer Pro", page_icon="🌪️", layout="wide")
 
 @st.cache_resource
 def load_model():
     return YOLO("yolov8n.pt")
+
+# Initialize session state
+if 'analysis_result' not in st.session_state:
+    st.session_state.analysis_result = None
+if 'last_analysis_time' not in st.session_state:
+    st.session_state.last_analysis_time = 0
+if 'clear_camera' not in st.session_state:
+    st.session_state.clear_camera = False
 
 def preprocess_image(img, target_width=640, mirror=False):
     if isinstance(img, Image.Image):
@@ -109,7 +117,6 @@ def detect_objects(bgr, model, conf_thresh):
         dispersion = var / (diag * diag)
     else:
         dispersion = 0
-
     
     return detections, {
         "object_count": count,
@@ -193,18 +200,12 @@ def create_progress_bar(score):
     </div>
     """
 
-# Initialize session state
-if 'analysis_result' not in st.session_state:
-    st.session_state.analysis_result = None
-if 'last_analysis_time' not in st.session_state:
-    st.session_state.last_analysis_time = 0
-
 # Load model
 model = load_model()
 
 # UI Layout
 st.title("🌪️ Chaos Analyzer Pro")
-st.caption("Analyze room chaos with computer vision and get a playful roast!")
+st.caption("Take photos, analyze chaos, then take new photos without freezing!")
 
 # Sidebar controls  
 with st.sidebar:
@@ -261,16 +262,28 @@ with col1:
     current_image = None
     
     if input_mode == "📷 Camera":
-        st.info("📷 Take a photo to analyze or use auto-analyze mode")
+        st.info("📷 Take a photo to analyze. Camera resets after each analysis for new photos!")
         
-        # Use Streamlit's built-in camera input
-        camera_photo = st.camera_input("Take a picture")
+        # Key trick: use a key that changes to reset the camera input
+        camera_key = f"camera_input_{st.session_state.get('photo_counter', 0)}"
+        
+        # Use Streamlit's built-in camera input with dynamic key
+        camera_photo = st.camera_input("Take a picture", key=camera_key)
         
         if camera_photo is not None:
             current_image = Image.open(camera_photo)
             
-            # Manual analyze button
-            analyze_now = st.button("🔍 Analyze Current Photo", type="primary")
+            # Show current photo
+            st.image(current_image, caption="Current Photo", use_container_width=True)
+            
+            # Analysis controls
+            col_analyze, col_reset = st.columns([2, 1])
+            
+            with col_analyze:
+                analyze_now = st.button("🔍 Analyze This Photo", type="primary", use_container_width=True)
+            
+            with col_reset:
+                reset_camera = st.button("🔄 New Photo", use_container_width=True)
             
             # Auto analyze logic
             current_time = time.time()
@@ -302,13 +315,20 @@ with col1:
                     }
                     st.session_state.last_analysis_time = current_time
                     
-                st.success("✅ Analysis complete!")
+                st.success("✅ Analysis complete! Take a new photo for another analysis.")
+            
+            # Reset camera to take new photo
+            if reset_camera or analyze_now:
+                # Increment counter to change the key and reset camera input
+                st.session_state.photo_counter = st.session_state.get('photo_counter', 0) + 1
+                st.rerun()
     
     else:  # Upload mode
         uploaded_file = st.file_uploader("Choose an image", type=['jpg', 'jpeg', 'png'])
         
         if uploaded_file is not None:
             current_image = Image.open(uploaded_file)
+            st.image(current_image, caption="Uploaded Image", use_container_width=True)
             
             if st.button("🔍 Analyze Uploaded Image", type="primary"):
                 with st.spinner("Analyzing chaos..."):
@@ -335,10 +355,6 @@ with col1:
                     }
                     
                 st.success("✅ Analysis complete!")
-    
-    # Display current image
-    if current_image:
-        st.image(current_image, caption="Current Image", use_container_width=True)
 
 with col2:
     st.subheader("📊 Analysis Results")
@@ -389,8 +405,8 @@ with col2:
                     st.image(colored, caption="Local Chaos Heatmap", use_container_width=True)
         
     else:
-        st.info("👆 Take a photo or upload an image, then click Analyze!")
+        st.info("👆 Take a photo and click Analyze to see results!")
 
 # Footer
 st.markdown("---")
-st.caption("🎯 Built for fun hackathon projects • Adjust weights and bounds to calibrate for your environment")
+st.caption("🎯 Camera automatically resets after analysis for continuous photo-taking • No freezing or WebRTC complexity")
