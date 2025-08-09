@@ -14,7 +14,7 @@ from PIL import Image
 from skimage.measure import shannon_entropy
 from ultralytics import YOLO
 
-st.set_page_config(page_title="🌪️ Chaos Analyzer Pro", page_icon="🌪️", layout="wide")
+st.set_page_config(page_title="🌪️ Chaos Analyzer ", page_icon="🌪️", layout="wide")
 
 @st.cache_resource
 def load_model():
@@ -314,8 +314,8 @@ st.write("Loading YOLO model...")
 model = load_model()
 
 # UI Layout
-st.title("🌪️ Chaos Analyzer Pro")
-st.caption("Fixed chaos analysis with proper error handling and debugging!")
+st.title("🌪️ Chaos Analyzer ")
+st.caption("Chaos analysis to meet the chaos around you!")
 
 # SIDEBAR CONTROLS
 with st.sidebar:
@@ -326,7 +326,7 @@ with st.sidebar:
     input_mode = st.radio("Input Mode", ["📷 Camera", "📁 Upload"], index=0)
     
     if input_mode == "📷 Camera":
-        mirror_live_feed = st.checkbox("🪞 Mirror live camera feed", value=True)
+        mirror_live_feed = st.toggle("🪞 Mirror live camera feed", value=True)
         if mirror_live_feed:
             st.success("🪞 Live feed will be mirrored")
         else:
@@ -461,7 +461,7 @@ with results_col:
         col_tabs, col_toggle = st.columns([3, 1])
         
         with col_toggle:
-            mirror_analysis_output = st.checkbox("🔄 Mirror", value=True, 
+            mirror_analysis_output = st.toggle("🔄 Mirror", value=True, 
                                                 help="Mirror analysis output", 
                                                 key="output_mirror_toggle")
         
@@ -499,14 +499,11 @@ with results_col:
         
     else:
         st.info("👆 Take a photo to see results!")
-        st.markdown("### 🎯 Fixed Features:")
+        st.markdown("### ⚫ Feel The Chaos")
         st.markdown("""
-        - ✅ **Proper YOLO Integration** - Fixed tensor indexing
-        - ✅ **Error Handling** - Comprehensive try-catch blocks  
-        - ✅ **Debug Information** - Shows analysis progress
-        - ✅ **Simplified Metrics** - Research-based but stable
-        - ✅ **Fixed Preprocessing** - Proper image shape handling
-        - ✅ **Working Visualizations** - Edges, heatmap, annotations
+        - Chaos Analyzer 
+        - Takes Your Image And Analyzes It For Chaos
+        - See The Chaos Within You
         """)
 
 st.markdown("---")
